@@ -29,6 +29,8 @@ float data_suhu = 0;
 float data_tekanan = 0;
 int data_terima;
 int counter = 0;
+int data_close = 100;
+int data_open = 0;
 unsigned long time = 0;
 
 void setup() {
@@ -55,7 +57,7 @@ void setup() {
 
   //--> Checking...
   while (data_terima != 56) {
-    kirim_data(1, data_suhu);
+    kirim_data(1, data_close);
     delay(1000);
     if (Serial.available() > 0) {
       data_terima = Serial.readString().toInt();
@@ -80,7 +82,7 @@ void loop() {
     lcd.setCursor(0, 0);
     lcd.print("Mohon Tunggu...");
     delay(1000);
-    kirim_data(1, data_suhu);
+    kirim_data(1, data_close);
     if (Serial.available() > 0) {
       data_terima = Serial.readString().toInt();
     }
@@ -143,48 +145,70 @@ void loop() {
     }
     if (data_select[3] == false) {
       while (true) {
-        kirim_data(44, data_suhu);
-        delay(1000);
+        while (true) {
+          digitalWrite(pin_pematik, HIGH);
+          kirim_data(44, data_open);
+          delay(1000);
+          if (Serial.available() > 0) {
+            data_terima = Serial.readString().toInt();
+          }
+          if (data_terima == 56) {
+            data_select[3] = true;
+            break;
+          }
+        }
         if (Serial.available() > 0) {
           data_terima = Serial.readString().toInt();
         }
-        if (data_terima == 56) {
-          data_select[3] = true;
+        if (data_terima == 70) {
           break;
         }
       }
     }
     if (data_select[4] == false) {
       while (true) {
-        kirim_data(23, data_suhu);
+        while (true) {
+          kirim_data(23, data_suhu);
+          delay(1000);
+          if (data_tekanan >= 4.00) {
+            digitalWrite(pin_SL02_OUT, HIGH);
+            break;
+          }
+        }
+        kirim_data(50, 80);
         delay(1000);
-        if (Serial.available() > 0) {
-          data_terima = Serial.readString().toInt();
-        }
-        if (data_terima == 56) {
-          data_select[4] = true;
-          break;
-        }
+        if (digitalRead(batas_atas) == HIGH && digitalRead(batas_bawah) == HIGH) break;
       }
     }
-    kirim_data(50, data_suhu);
+
+    data_select[0] = false;
+    data_select[1] = false;
+    data_select[2] = false;
+    data_select[3] = false;
+    data_select[4] = false;
+    digitalWrite(pin_SL02_OUT, LOW);
     delay(1000);
-    if (data_tekanan >= 4.00) data_select[1] = true;
-    if (data_select[1] == true) digitalWrite(pin_SL02_OUT, HIGH);
-    if (data_select[2] == true) digitalWrite(pin_pematik, HIGH);
-    if (digitalRead(batas_atas) == HIGH && digitalRead(batas_bawah) == HIGH) {
-      data_select[0] = false;
-      data_select[1] = false;
-      data_select[2] = false;
-      data_select[3] = false;
-      data_select[4] = false;
-      digitalWrite(pin_SL02_OUT, LOW);
-      delay(1000);
-      digitalWrite(pin_pematik, LOW);
-      counter += 1;
-      lcd.clear();
-      break;
-    }
+    digitalWrite(pin_pematik, LOW);
+    counter += 1;
+    lcd.clear();
+    break;
+
+    // if (data_tekanan >= 4.00) data_select[1] = true;
+    // if (data_select[1] == true) digitalWrite(pin_SL02_OUT, HIGH);
+    // if (data_select[2] == true) digitalWrite(pin_pematik, HIGH);
+    // if (digitalRead(batas_atas) == HIGH && digitalRead(batas_bawah) == HIGH) {
+    //   data_select[0] = false;
+    //   data_select[1] = false;
+    //   data_select[2] = false;
+    //   data_select[3] = false;
+    //   data_select[4] = false;
+    //   digitalWrite(pin_SL02_OUT, LOW);
+    //   delay(1000);
+    //   digitalWrite(pin_pematik, LOW);
+    //   counter += 1;
+    //   lcd.clear();
+    //   break;
+    // }
   }
 }
 
