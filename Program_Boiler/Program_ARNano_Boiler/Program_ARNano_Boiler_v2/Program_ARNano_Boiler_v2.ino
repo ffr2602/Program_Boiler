@@ -1,7 +1,7 @@
 #include <AccelStepper.h>
 #include <Servo.h>
 #include <SoftwareSerial.h>
-SoftwareSerial data_serial(7, 6);  //--> RX, TX
+SoftwareSerial data_serial(6, 7);  //--> RX, TX
 Servo servo;
 
 //--> Sensor Api pin
@@ -20,7 +20,7 @@ AccelStepper stepper(AccelStepper::DRIVER, pin_STEP, pin_DIR);
 bool data_servo = false;
 int data_terima[2];
 int data_terima_servo;
-int data_terima_motor;
+int data_terima_PID;
 int awal_pos = 0;
 unsigned long time_1 = 0;
 
@@ -45,7 +45,7 @@ void setup() {
 
   //--> Set Motor STEPPER
   stepper.setMaxSpeed(2000);
-  stepper.setSpeed(1000);
+  stepper.setSpeed(500);
 
   //--> Set Servo
   servo.attach(8);
@@ -74,26 +74,28 @@ void loop() {
       delay(1000);
     }
 
-    //--> Simpan Data Untuk Servo Akif
-    if (data_terima[0] == 23) {
+    //--> Simpan Data Untuk Servo Akif dan Pematik Aktif
+    if (data_terima[0] == 44) {
       data_terima_servo = data_terima[0];
       data_serial.println("56");
       delay(1000);
     }
 
-    //--> Simpan Data Untuk Motor Akif
-    if (data_terima[0] == 44) {
-      data_terima_motor = data_terima[0];
-      data_serial.println("56");
-      delay(1000);
+    //--> Simpan Data Untuk PID Aktif
+    if (data_terima[0] == 23) {
+      data_terima_PID = data_terima[0];
     }
 
-    Serial.println(data_terima[0]);
+    //--> Simpan Data Untuk PID Mati
+    if (data_terima[0] == 50) {
+      data_terima_PID = data_terima[0];
+    }
   }
 
   //--> Deteksi Api & Output Buzzer & Servo
-  if (data_terima_servo == 23) {
+  if (data_terima_servo == 44) {
     if (digitalRead(pin_sensor_api) == HIGH) {
+      motor_stepper_move(data_terima[1]);
       if (millis() - time_1 >= 500) {
         data_servo = !data_servo;
         time_1 = millis();
@@ -104,14 +106,24 @@ void loop() {
     } else {
       servo.write(awal_pos);
       digitalWrite(pin_BUZZ, LOW);
+      data_serial.println("70");
+      delay(1000);
     }
+  }
+
+  //--> PID Aktif
+  if (data_terima_PID == 23) {
+  }
+
+  //--> PID Mati
+  if (data_terima_PID == 50) {
   }
 }
 
 void motor_stepper_move(float posisi) {
-  int step_posisi = map(posisi, 0.00, 100.00, 0, 1000);
+  int step_posisi = map(posisi, 100.00, 0.00, 0, 800) / 4;
   stepper.moveTo(step_posisi);
-  stepper.setSpeed(1000);
+  stepper.setSpeed(500);
   stepper.runSpeedToPosition();
 }
 
