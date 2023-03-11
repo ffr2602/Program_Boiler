@@ -66,8 +66,6 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 void setup() {
 
-  Serial.begin(115200);
-
   //--> INPUT
   pinMode(pin_ADC, INPUT);
   pinMode(batas_atas, INPUT_PULLUP);
@@ -187,8 +185,6 @@ void loop() {
     //--> Mengatur OUTPUT GAS UAP Air
     if (data_tekanan >= setpoint_data_tekanan) {
       digitalWrite(pin_SL02_OUT, LOW);
-    } else if (data_tekanan < setpoint_data_tekanan) {
-      digitalWrite(pin_SL02_OUT, HIGH);
     }
     //--> Mengatur Ulang Proses jika Air Habis
     if (digitalRead(batas_bawah == HIGH) && digitalRead(batas_atas) == HIGH) {
@@ -222,6 +218,7 @@ void loop() {
 //--> Sub Program
 //----------------------------------------------------------------------------------------------------------------
 
+//--> Fungsi Penggerak Motor Stepper
 void motor_stepper_move(float posisi) {
   int step_posisi = map(posisi, 100.00, 0.00, 0, 800) / 4;
   stepper.moveTo(step_posisi);
@@ -229,6 +226,7 @@ void motor_stepper_move(float posisi) {
   stepper.runSpeedToPosition();
 }
 
+//--> Fungsi Baca Suhu dan Tekanan
 void baca_suhu_dan_tekanan() {
   int ADC_in = analogRead(pin_ADC);
   float voltage = 5.00 * ADC_in / 1023.00;
