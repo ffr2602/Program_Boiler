@@ -54,7 +54,6 @@ float data_tekanan = 0;
 
 int counter = 0;
 
-unsigned long time = 0;
 unsigned long time_1 = 0;
 unsigned long data_count = 0;
 
@@ -154,9 +153,9 @@ void loop() {
   //--> Kirim Data & Baca Suhu & Baca Tekanan & Kendali Output Selonoid Gas
   while (true) {
     //--> Baca suhu dan tekanan
-    if (millis() - time >= 2000) {
+    if (millis() - time_1 >= 2000) {
       baca_suhu_dan_tekanan();
-      time = millis();
+      time_1 = millis();
     }
     //--> Menghidupkan Pematik untuk menyalakan Api
     while (data_select[1] == false) {
